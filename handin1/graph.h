@@ -18,6 +18,7 @@ public:
         : name(name)
         , parent(nullptr)
         , cost(0)
+        , heapIndex(0)
     {
     }
 

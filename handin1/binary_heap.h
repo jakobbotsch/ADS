@@ -2,7 +2,13 @@
 #include <vector>
 #include <iostream>
 
-template<typename T, typename Compare = std::less<T>>
+template<typename T>
+struct null_tracker
+{
+    void operator()(T& value, size_t index) { }
+};
+
+template<typename T, typename Compare = std::less<T>, typename Track = null_tracker<T>>
 class binary_heap
 {
     std::vector<T> m_elements;
@@ -29,6 +35,11 @@ private:
         if (smallest != index)
         {
             std::swap(m_elements[index], m_elements[smallest]);
+
+            Track track;
+            track(m_elements[smallest], smallest);
+            track(m_elements[index], index);
+
             min_heapify(smallest);
         }
     }
@@ -55,25 +66,17 @@ public:
     void decrease_key(size_t index, const T& newValue)
     {
         Compare comp;
+        Track track;
         while (index > 0 && comp(newValue, m_elements[parent(index)]))
         {
             m_elements[index] = m_elements[parent(index)];
+            track(m_elements[index], index);
+
             index = parent(index);
         }
 
         m_elements[index] = newValue;
-    }
-
-    void decrease_key_search(const T& decreased)
-    {
-        for (size_t i = 0; i < m_elements.size(); i++)
-        {
-            if (m_elements[i] == decreased)
-            {
-                decrease_key(i, decreased);
-                break;
-            }
-        }
+        track(m_elements[index], index);
     }
 
     void insert(const T& element)

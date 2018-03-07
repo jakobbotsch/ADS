@@ -25,6 +25,7 @@ public:
     std::vector<edge> edges;
     node *parent;
     double cost;
+    size_t heapIndex;
 
     bool operator <(const node& rhs) { return cost < rhs.cost; }
 };
@@ -63,13 +64,18 @@ struct node_pointer_compare
     bool operator()(node *left, node *right) { return left->cost < right->cost; }
 };
 
-template<template<typename, typename> typename TPriorityQueue>
+struct node_pointer_track
+{
+    void operator()(node *& n, size_t index) { n->heapIndex = index; }
+};
+
+template<template<typename, typename, typename> typename TPriorityQueue>
 void dijkstra(graph& graph, node& start)
 {
     for (node& n : graph.nodes)
         n.cost = INFINITY;
 
-    TPriorityQueue<node*, node_pointer_compare> queue;
+    TPriorityQueue<node*, node_pointer_compare, node_pointer_track> queue;
     queue.insert(&start);
     start.cost = 0;
 
@@ -89,7 +95,7 @@ void dijkstra(graph& graph, node& start)
             e.target->parent = min;
 
             if (inQueue)
-                queue.decrease_key_search(e.target);
+                queue.decrease_key(e.target->heapIndex, e.target);
             else
                 queue.insert(e.target);
         }

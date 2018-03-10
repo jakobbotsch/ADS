@@ -77,8 +77,8 @@ void dijkstra(graph& graph, node& start)
         n.cost = INFINITY;
 
     TPriorityQueue<node*, node_pointer_compare, node_pointer_track> queue;
-    queue.insert(&start);
     start.cost = 0;
+    queue.insert(&start);
 
     while (queue.size() > 0)
     {

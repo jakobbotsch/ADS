@@ -6,7 +6,8 @@
 int main()
 {
     std::vector<int> elems { 5, 4, 2, 3, 1 };
-    binary_heap<int> heap = binary_heap<int>::make_heap(elems);
+    auto heap = binary_heap<int>::make_heap(elems);
+    heap.dump_list();
 
     graph g;
     g.add_node("s");

@@ -60,7 +60,8 @@ public:
     {
         m_elements[0] = m_elements[m_elements.size() - 1];
         m_elements.pop_back();
-        min_heapify(0);
+        if (m_elements.size() > 0)
+            min_heapify(0);
     }
 
     void decrease_key(size_t index, const T& newValue)
@@ -85,9 +86,9 @@ public:
         decrease_key(m_elements.size() - 1, element);
     }
 
-    static binary_heap<T, Compare> make_heap(const std::vector<T>& elems)
+    static binary_heap<T, Compare, Track> make_heap(const std::vector<T>& elems)
     {
-        binary_heap<T, Compare> heap;
+        binary_heap<T, Compare, Track> heap;
         heap.m_elements = elems;
         for (int i = static_cast<int>(heap.m_elements.size() / 2 - 1); i >= 0; i--)
         {

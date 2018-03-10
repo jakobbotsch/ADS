@@ -2,12 +2,17 @@
 #include <vector>
 #include "binary_heap.h"
 #include "graph.h"
+#include "fibonacci_heap.h"
 
 int main()
 {
     std::vector<int> elems { 5, 4, 2, 3, 1 };
-    auto heap = binary_heap<int>::make_heap(elems);
-    heap.dump_list();
+    auto heap = fibonacci_heap<int>::make_heap(elems);
+    fib_node<int> *x = heap.insert(6);
+    heap.print_list();
+    heap.decrease_key(x, 0);
+    heap.print_list();
+    /*heap.dump_list();
 
     graph g;
     g.add_node("s");
@@ -34,7 +39,7 @@ int main()
             << ": parent = "
             << (n.parent ? n.parent->name : "(null)")
             << ", cost = " << n.cost << "\n";
-    }
+    }*/
 
     return 0;
 }

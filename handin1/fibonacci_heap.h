@@ -66,11 +66,12 @@ private:
     void consolidate()
     {
         //make A
+        std::vector
 
         fib_node<T> *cur = min;
         do
         {
-            
+               
             cur = cur->right;
         } while(cur != min);
     }

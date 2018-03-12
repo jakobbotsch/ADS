@@ -1,3 +1,6 @@
+#ifndef GRAPH_H
+#define GRAPH_H
+
 #include <string>
 #include <vector>
 #include <cmath>
@@ -18,7 +21,6 @@ public:
         : name(name)
         , parent(nullptr)
         , cost(0)
-        , heapIndex(0)
     {
     }
 
@@ -26,7 +28,7 @@ public:
     std::vector<edge> edges;
     node *parent;
     double cost;
-    size_t heapIndex;
+    heap_locator heap_loc;
 
     bool operator <(const node& rhs) { return cost < rhs.cost; }
 };
@@ -67,7 +69,7 @@ struct node_pointer_compare
 
 struct node_pointer_track
 {
-    void operator()(node *& n, size_t index) { n->heapIndex = index; }
+    void operator()(node*& n, heap_locator loc) { n->heap_loc = loc; }
 };
 
 template<template<typename, typename, typename> typename TPriorityQueue>
@@ -96,9 +98,11 @@ void dijkstra(graph& graph, node& start)
             e.target->parent = min;
 
             if (inQueue)
-                queue.decrease_key(e.target->heapIndex, e.target);
+                queue.decrease_key(e.target->heap_loc, e.target);
             else
                 queue.insert(e.target);
         }
     }
 }
+
+#endif

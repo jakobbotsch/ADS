@@ -6,19 +6,19 @@
 
 int main()
 {
-    std::vector<int> elems { 5, 4, 2, 3, 1 };
-    auto heap = fibonacci_heap<int>::make_heap(elems);
-    for(int i = 0; i <3 ; i++)
+    std::vector<int> elems { 5, 4, 2, 3, 1, -1000, 500 };
+    /*auto heap = fibonacci_heap<int>::make_heap(elems);
+    while (heap.size() > 0)
     {
         std::cout << heap.find_min() << " ";
         heap.delete_min();
-    }
+    }*/
 
     // fib_node<int> *x = heap.insert(6);
     // heap.print_list();
     // heap.decrease_key(x, 0);
     // heap.print_list();
-    /*heap.dump_list();
+    // heap.dump_list();
 
     graph g;
     g.add_node("s");
@@ -37,7 +37,7 @@ int main()
     g.connect("z", "s", 7);
     g.connect("z", "x", 6);
 
-    dijkstra<binary_heap>(g, *g.find_node("s"));
+    dijkstra<fibonacci_heap>(g, *g.find_node("s"));
     for (node n : g.nodes)
     {
         std::cout
@@ -45,7 +45,7 @@ int main()
             << ": parent = "
             << (n.parent ? n.parent->name : "(null)")
             << ", cost = " << n.cost << "\n";
-    }*/
+    }
 
     return 0;
 }

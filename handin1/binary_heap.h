@@ -1,11 +1,21 @@
+#ifndef BINARY_HEAP_H
+#define BINARY_HEAP_H
+
 #include <functional>
 #include <vector>
 #include <iostream>
+#include <cstdint>
+
+union heap_locator
+{
+    size_t index;
+    void *pointer;
+};
 
 template<typename T>
 struct null_tracker
 {
-    void operator()(T& value, size_t index) { }
+    void operator()(T& value, heap_locator locator) { }
 };
 
 template<typename T, typename Compare = std::less<T>, typename Track = null_tracker<T>>
@@ -17,6 +27,15 @@ private:
     size_t parent(size_t i) { return (i - 1) / 2; }
     size_t left(size_t i) { return 2 * i + 1; }
     size_t right(size_t i) { return 2 * i + 2; }
+
+    void track(T& value, size_t index)
+    {
+        heap_locator loc;
+        loc.index = index;
+
+        Track track;
+        track(value, loc);
+    }
 
     void min_heapify(size_t index)
     {
@@ -36,7 +55,6 @@ private:
         {
             std::swap(m_elements[index], m_elements[smallest]);
 
-            Track track;
             track(m_elements[smallest], smallest);
             track(m_elements[index], index);
 
@@ -64,11 +82,15 @@ public:
             min_heapify(0);
     }
 
-    void decrease_key(size_t index, const T& newValue)
+    void decrease_key(heap_locator loc, const T& newKey)
+    {
+        decrease_key(loc.index, newKey);
+    }
+
+    void decrease_key(size_t index, const T& newKey)
     {
         Compare comp;
-        Track track;
-        while (index > 0 && comp(newValue, m_elements[parent(index)]))
+        while (index > 0 && comp(newKey, m_elements[parent(index)]))
         {
             m_elements[index] = m_elements[parent(index)];
             track(m_elements[index], index);
@@ -76,7 +98,7 @@ public:
             index = parent(index);
         }
 
-        m_elements[index] = newValue;
+        m_elements[index] = newKey;
         track(m_elements[index], index);
     }
 
@@ -98,3 +120,5 @@ public:
         return heap;
     }
 };
+
+#endif

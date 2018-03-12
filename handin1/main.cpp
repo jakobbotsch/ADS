@@ -8,10 +8,16 @@ int main()
 {
     std::vector<int> elems { 5, 4, 2, 3, 1 };
     auto heap = fibonacci_heap<int>::make_heap(elems);
-    fib_node<int> *x = heap.insert(6);
-    heap.print_list();
-    heap.decrease_key(x, 0);
-    heap.print_list();
+    for(int i = 0; i <3 ; i++)
+    {
+        std::cout << heap.find_min() << " ";
+        heap.delete_min();
+    }
+
+    // fib_node<int> *x = heap.insert(6);
+    // heap.print_list();
+    // heap.decrease_key(x, 0);
+    // heap.print_list();
     /*heap.dump_list();
 
     graph g;

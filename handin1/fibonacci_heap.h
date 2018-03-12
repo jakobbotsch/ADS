@@ -35,7 +35,8 @@ private:
     size_t n;
 
     void concat(fib_node<T> *x){
-        if(min == nullptr){
+        if (min == nullptr)
+        {
             min = x;
             return;
         }
@@ -44,6 +45,22 @@ private:
         x->right = min->right;
         min->right->left = x;
         min->right = x;
+    }
+
+    void add_child(fib_node<T> *parent, fib_node<T> *child)
+    {
+        child->p = parent;
+        if (parent->child == nullptr)
+        {
+           parent->child = child;
+        }
+        child->left->right = child->right;
+        child->right->left = child->left;
+
+        child->left = parent->child;
+        child->right = parent->child->right;
+        parent->child->right->left = child;
+        parent->child->right = child;
     }
 
     void cut(fib_node<T> *x)
@@ -66,23 +83,65 @@ private:
     void consolidate()
     {
         //make A
-        std::vector
-
+        std::vector<fib_node<T>*> byDegree;
+        
         fib_node<T> *cur = min;
+        Lesser lesser;
         do
         {
-               
-            cur = cur->right;
+            fib_node<T> *adding = cur; 
+            fib_node<T> *next = cur->right;
+            while (true)
+            {
+                if (adding->rank >= byDegree.size())
+                {
+                    byDegree.resize(adding->rank +1, nullptr);
+                }
+                
+                fib_node<T>* &spot =  byDegree[adding->rank];
+                if (spot == nullptr)
+                {
+                    spot = adding;
+                    break;
+                }
+
+                if (lesser(spot->key, adding->key))
+                {
+                    add_child(spot, adding);
+                    adding = spot;
+                }
+                else
+                {
+                    add_child(adding, spot);
+                }
+                spot = nullptr;
+                adding->rank++;
+            }
+            cur = next;
         } while(cur != min);
+        
+        for (fib_node<T> *root : byDegree)
+        {   
+            if(root == nullptr)
+                continue;
+            if(lesser(root->key, min->key))
+                min = root;
+        }
+
     }
 
     void unlink(fib_node<T> *x)
     {
+
         x->left->right = x->right;
         x->right->left = x->left;
-        if(x->p->child == x)
-            x->p->child = x->right == x ? nullptr : x->right;
-        x->p = nullptr;
+        if(x->p != nullptr)
+        {
+            if(x->p->child == x)
+                x->p->child = x->right == x ? nullptr : x->right;
+            x->p->rank--;
+            x->p = nullptr;
+        }  
     }
 
 public:
@@ -123,6 +182,7 @@ public:
 
     const T& find_min()
     {
+        std::cout << min <<" ";
         return min->key;
     }
 
@@ -146,13 +206,16 @@ public:
             return;
 
         fib_node<T> *cur = min->child;
-        do
+        if(cur != nullptr)
         {
-            concat(cur);
-            cur->p = nullptr;
-            cur = cur->right;
-        }
-        while(cur != min->child);
+            do
+            {
+                concat(cur);
+                cur->p = nullptr;
+                cur = cur->right;
+            }
+            while(cur != min->child);
+        }      
 
         unlink(min);
         

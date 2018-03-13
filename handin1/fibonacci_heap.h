@@ -7,39 +7,37 @@
 #include <cassert>
 #include "binary_heap.h"
 
-template<typename T>
-class fib_node
-{
-public:
-    fib_node<T> *p;
-    T key;
-    size_t rank;
-    fib_node<T> *left;
-    fib_node<T> *right;
-    fib_node<T> *child;
-    bool mark;
-
-    fib_node(const T &value)
-    : p(nullptr)
-    , key(value)
-    , rank(0)
-    , left(this)
-    , right(this)
-    , child(nullptr)
-    , mark(false)
-    {
-    }
-
-};
-
 template<typename T, typename Lesser = std::less<T>, typename Track = null_tracker<T>>
 class fibonacci_heap
 {
 private:
-    fib_node<T> *min;
-    size_t n;
+    struct heap_node
+    {
+        T key;
+        size_t rank;
+        heap_node *p;
+        heap_node *left;
+        heap_node *right;
+        heap_node *child;
+        bool mark;
 
-    void track(fib_node<T> *node)
+        heap_node(const T& key)
+            : key(key)
+            , rank(0)
+            , p(nullptr)
+            , left(this)
+            , right(this)
+            , child(nullptr)
+            , mark(false)
+        {
+        }
+
+    };
+
+    heap_node *m_min;
+    size_t m_size;
+
+    void track(heap_node *node)
     {
         heap_locator loc;
         loc.pointer = node;
@@ -51,7 +49,7 @@ private:
     // Add x to the specified linked list.
     // If 'list' is null, x becomes the head (i.e. list == x after).
     // Otherwise x is added before the head.
-    void add_to_list(fib_node<T>*& list, fib_node<T> *x)
+    void add_to_list(heap_node*& list, heap_node *x)
     {
         if (list == nullptr)
         {
@@ -61,7 +59,7 @@ private:
         }
         else
         {
-            fib_node<T>* tail = list->left;
+            heap_node* tail = list->left;
 
             x->left = tail;
             x->right = list;
@@ -73,7 +71,7 @@ private:
 
     // Remove x from the specified linked list.
     // If 'list' consisted only of x, it is set to null.
-    void remove_from_list(fib_node<T>*& list, fib_node<T> *x)
+    void remove_from_list(heap_node*& list, heap_node *x)
     {
         // Head and only element
         if (list == x && x->right == x)
@@ -96,20 +94,20 @@ private:
         x->right = x;
     }
 
-    void add_child(fib_node<T> *parent, fib_node<T> *child)
+    void add_child(heap_node *parent, heap_node *child)
     {
         child->p = parent;
         add_to_list(parent->child, child);
     }
 
-    void cut(fib_node<T> *x)
+    void cut(heap_node *x)
     {
-        fib_node<T> *parent = x->p;
+        heap_node *parent = x->p;
         remove_from_list(parent->child, x);
         parent->rank--;
         x->p = nullptr;
 
-        add_to_list(min, x);
+        add_to_list(m_min, x);
 
         x->mark = false;
         if (parent->p == nullptr)
@@ -123,23 +121,22 @@ private:
 
     void consolidate()
     {
-        std::vector<fib_node<T>*> byDegree;
+        heap_node *byDegree[64] = {nullptr};
+        size_t maxDegree = 0;
         
         Lesser lesser;
-        while (min != nullptr)
+        while (m_min != nullptr)
         {
-            fib_node<T> *adding = min;
-            remove_from_list(min, min);
+            heap_node *adding = m_min;
+            remove_from_list(m_min, m_min);
 
             while (true)
             {
-                if (adding->rank >= byDegree.size())
-                    byDegree.resize(adding->rank + 1, nullptr);
-                
-                fib_node<T>* &spot = byDegree[adding->rank];
+                heap_node*& spot = byDegree[adding->rank];
                 if (spot == nullptr)
                 {
                     spot = adding;
+                    maxDegree = std::max(maxDegree, adding->rank + 1);
                     break;
                 }
 
@@ -158,44 +155,43 @@ private:
             }
         }
         
-        for (fib_node<T> *root : byDegree)
+        for (size_t i = 0; i < maxDegree; i++)
         {
+            heap_node *root = byDegree[i];
             if (root == nullptr)
                 continue;
 
-            add_to_list(min, root);
-            if (lesser(root->key, min->key))
-                min = root;
+            add_to_list(m_min, root);
+            if (lesser(root->key, m_min->key))
+                m_min = root;
         }
     }
 
 public:
     fibonacci_heap()
-        : min(nullptr)
-        , n(0)
+        : m_min(nullptr)
+        , m_size(0)
     {
     }
 
-    fib_node<T> *insert(const T& value)
+    void insert(const T& value)
     {
-        fib_node<T> *x = new fib_node<T>(value);
+        heap_node *x = new heap_node(value);
         track(x);
-        add_to_list(min, x);
+        add_to_list(m_min, x);
 
         Lesser less;
-        if (less(x->key, min->key))
-            min = x;
+        if (less(x->key, m_min->key))
+            m_min = x;
 
-        n++;
-
-        return x;
+        m_size++;
     }
 
     void print_list()
     {
-        if (min != nullptr)
+        if (m_min != nullptr)
         {
-            fib_node<T> *cur = min;
+            heap_node *cur = m_min;
             do
             {
                 std::cout
@@ -204,54 +200,54 @@ public:
                     << ", right: " << cur->right->key << "\n";
 
                 cur = cur->right;
-            } while(cur != min);
+            } while(cur != m_min);
         }
 
         std::cout << "\n";
     }
 
-    const size_t size() const { return n; }
-    const T& find_min() const { return min->key; }
+    const size_t size() const { return m_size; }
+    const T& find_min() const { return m_min->key; }
 
     void decrease_key(heap_locator loc, const T& key)
     {
-        fib_node<T> *x = static_cast<fib_node<T>*>(loc.pointer);
+        heap_node *x = static_cast<heap_node*>(loc.pointer);
         x->key = key;
 
         Lesser less;
         if (x->p != nullptr && less(x->key, x->p->key))
             cut(x);
 
-        if (less(x->key, min->key))
-            min = x;
+        if (less(x->key, m_min->key))
+            m_min = x;
     }
 
     void delete_min()
     {
-        assert(min != nullptr);
+        assert(m_min != nullptr);
 
-        while (min->child != nullptr)
+        while (m_min->child != nullptr)
         {
-            fib_node<T> *node = min->child;
-            remove_from_list(min->child, node);
-            add_to_list(min, node);
+            heap_node *node = m_min->child;
+            remove_from_list(m_min->child, node);
+            add_to_list(m_min, node);
             node->p = nullptr;
         }      
 
-        fib_node<T> *removed = min;
-        remove_from_list(min, min);
-        n--;
+        heap_node *removed = m_min;
+        remove_from_list(m_min, m_min);
+        m_size--;
 
         delete removed;
 
         consolidate();
     }
 
-    static fibonacci_heap<T, Lesser> make_heap(const std::vector<T>& elems)
+    static fibonacci_heap<T, Lesser, Track> make_heap(const std::vector<T>& elems)
     {
-        fibonacci_heap<T, Lesser> heap;
+        fibonacci_heap<T, Lesser, Track> heap;
         
-        for (const T &t: elems)
+        for (const T& t : elems)
         {
             heap.insert(t);
         }

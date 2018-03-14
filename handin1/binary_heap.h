@@ -18,12 +18,14 @@ struct null_tracker
     void operator()(T& value, heap_locator locator) { }
 };
 
-template<typename T, typename Compare = std::less<T>, typename Track = null_tracker<T>>
+template<typename T, typename Lesser = std::less<T>, typename Track = null_tracker<T>>
 class binary_heap
 {
-    std::vector<T> m_elements;
-
 private:
+    std::vector<T> m_elements;
+    Lesser m_less;
+    Track m_track;
+
     size_t parent(size_t i) { return (i - 1) / 2; }
     size_t left(size_t i) { return 2 * i + 1; }
     size_t right(size_t i) { return 2 * i + 2; }
@@ -41,14 +43,13 @@ private:
     {
         size_t l = left(index);
         size_t r = right(index);
-        Compare comp;
         size_t smallest;
-        if (l < m_elements.size() && comp(m_elements[l], m_elements[index]))
+        if (l < m_elements.size() && m_less(m_elements[l], m_elements[index]))
             smallest = l;
         else
             smallest = index;
 
-        if (r < m_elements.size() && comp(m_elements[r], m_elements[smallest]))
+        if (r < m_elements.size() && m_less(m_elements[r], m_elements[smallest]))
             smallest = r;
 
         if (smallest != index)
@@ -63,6 +64,13 @@ private:
     }
 
 public:
+    binary_heap(const Lesser& less = Lesser(), const Track& track = Track())
+        : m_less(less)
+        , m_track(track)
+    {
+    }
+
+    const Lesser& get_lesser() { return m_less; }
     size_t size() { return m_elements.size(); }
 
     void dump_list()
@@ -89,8 +97,7 @@ public:
 
     void decrease_key(size_t index, const T& newKey)
     {
-        Compare comp;
-        while (index > 0 && comp(newKey, m_elements[parent(index)]))
+        while (index > 0 && m_less(newKey, m_elements[parent(index)]))
         {
             m_elements[index] = m_elements[parent(index)];
             track(m_elements[index], index);
@@ -108,9 +115,9 @@ public:
         decrease_key(m_elements.size() - 1, element);
     }
 
-    static binary_heap<T, Compare, Track> make_heap(const std::vector<T>& elems)
+    static binary_heap<T, Lesser, Track> make_heap(const std::vector<T>& elems)
     {
-        binary_heap<T, Compare, Track> heap;
+        binary_heap<T, Lesser, Track> heap;
         heap.m_elements = elems;
         for (int i = static_cast<int>(heap.m_elements.size() / 2 - 1); i >= 0; i--)
         {

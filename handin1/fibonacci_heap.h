@@ -36,14 +36,15 @@ private:
 
     heap_node *m_min;
     size_t m_size;
+    Lesser m_less;
+    Track m_track;
 
     void track(heap_node *node)
     {
         heap_locator loc;
         loc.pointer = node;
 
-        Track track;
-        track(node->key, loc);
+        m_track(node->key, loc);
     }
 
     // Add x to the specified linked list.
@@ -124,7 +125,6 @@ private:
         heap_node *byDegree[64] = {nullptr};
         size_t maxDegree = 0;
         
-        Lesser lesser;
         while (m_min != nullptr)
         {
             heap_node *adding = m_min;
@@ -140,7 +140,7 @@ private:
                     break;
                 }
 
-                if (lesser(spot->key, adding->key))
+                if (m_less(spot->key, adding->key))
                 {
                     add_child(spot, adding);
                     adding = spot;
@@ -162,7 +162,7 @@ private:
                 continue;
 
             add_to_list(m_min, root);
-            if (lesser(root->key, m_min->key))
+            if (m_less(root->key, m_min->key))
                 m_min = root;
         }
     }
@@ -180,8 +180,7 @@ public:
         track(x);
         add_to_list(m_min, x);
 
-        Lesser less;
-        if (less(x->key, m_min->key))
+        if (m_less(x->key, m_min->key))
             m_min = x;
 
         m_size++;
@@ -208,17 +207,17 @@ public:
 
     const size_t size() const { return m_size; }
     const T& find_min() const { return m_min->key; }
+    Lesser& get_lesser() { return m_less; }
 
     void decrease_key(heap_locator loc, const T& key)
     {
         heap_node *x = static_cast<heap_node*>(loc.pointer);
         x->key = key;
 
-        Lesser less;
-        if (x->p != nullptr && less(x->key, x->p->key))
+        if (x->p != nullptr && m_less(x->key, x->p->key))
             cut(x);
 
-        if (less(x->key, m_min->key))
+        if (m_less(x->key, m_min->key))
             m_min = x;
     }
 

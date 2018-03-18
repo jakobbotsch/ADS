@@ -38,6 +38,21 @@ class graph
 public:
     std::vector<node> nodes;
 
+    void print_graph()
+    {
+        std::cout << "digraph graphname {\n";
+        for(node &n: nodes){
+            //std::cout << &n << "\n";
+            //std::cout << n.name << "\n";
+            //std::cout << n.edges.size() << "\n";
+            for(edge &e: n.edges){
+                //std::cout << e.target << "\n";
+                std::cout << "\"" << n.name << "\" -> \"" << e.target->name << "\" [label=" << e.weight << "];\n";
+            }  
+        } 
+        std::cout << "}\n";
+    }
+
     void add_node(const std::string& name)
     {
         nodes.push_back(node(name));
@@ -60,6 +75,13 @@ public:
         node *b = find_node(nameB);
         a->edges.push_back(edge { weight, b });
     }
+
+    void connect( size_t index_A, size_t index_B, double weight)
+    {
+        node *a = &nodes[index_A];
+        node *b = &nodes[index_B];
+        a->edges.push_back(edge { weight, b });
+    }
 };
 
 struct node_pointer_compare
@@ -76,7 +98,11 @@ template<template<typename, typename, typename> typename TPriorityQueue>
 void dijkstra(graph& graph, node& start)
 {
     for (node& n : graph.nodes)
+    {
+        //std::cout << "Set to inf\n";
         n.cost = INFINITY;
+        //std::cout << "Was set to: " << n.cost <<"\n";
+    }
 
     TPriorityQueue<node*, node_pointer_compare, node_pointer_track> queue;
     start.cost = 0;
@@ -89,6 +115,7 @@ void dijkstra(graph& graph, node& start)
 
         for (edge& e : min->edges)
         {
+            //std::cout << "edge to node with cost: " << e.target->cost << "\n";
             double newCost = min->cost + e.weight;
             if (newCost >= e.target->cost)
                 continue;
@@ -97,10 +124,17 @@ void dijkstra(graph& graph, node& start)
             e.target->cost = newCost;
             e.target->parent = min;
 
+
             if (inQueue)
+            {
+                //std::cout << "key " << e.target->name << " decreased\n";
                 queue.decrease_key(e.target->heap_loc, e.target);
+            }
             else
+            {
+                //std::cout << "new " << e.target->name << " added\n";
                 queue.insert(e.target);
+            }
         }
     }
 }

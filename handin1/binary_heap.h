@@ -97,6 +97,7 @@ public:
 
     void decrease_key(size_t index, const T& newKey)
     {
+        //std::cout << "index: " << index << " size: " << m_elements.size() << "\n";
         while (index > 0 && m_less(newKey, m_elements[parent(index)]))
         {
             m_elements[index] = m_elements[parent(index)];

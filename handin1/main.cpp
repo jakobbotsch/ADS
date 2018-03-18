@@ -84,10 +84,47 @@ for (int i = 100000; i <= 3000000; i += 100000)
     std::cout << "{" << i << ", " << elapsed << "}, " << std::flush;
 }*/
 
+template<template<typename, typename, typename> typename TPriorityQueue>
+void measure_graph(const char *name)
+{
+    std::cout << "\n" << name << "\n";
+
+    for (size_t n = 20000; n<=20000; n+=100)
+    {
+        graph g;
+        for (size_t i = 0; i < n; i++)
+        {
+            std::string name_i = std::to_string((int) i);
+            g.add_node(name_i);
+        }
+        for (size_t i = 0; i < n; i++)
+        {
+            for (size_t j = 0; j < i; j++)
+            {
+                g.connect(j, i, 2*(i-j-1)+1);
+            }
+        }
+        double avg = 0;
+        const int times = 3;
+        for (int j = 0; j < times; j++)
+        {
+            double start = timestamp_ms();
+            dijkstra<TPriorityQueue>(g, *g.find_node("0"));
+            avg += timestamp_ms()-start;
+        }
+        std::cout << std::fixed;
+        std::cout << "{" << log2(n*n) << ", " << (avg / times) << "}, " << std::flush;
+
+    }
+};
+
 int main()
 {
-    measure<binary_heap>("binary heap");
-    measure<fibonacci_heap>("fibonacci heap");
+    //measure<binary_heap>("binary heap");
+    //measure<fibonacci_heap>("fibonacci heap");
+
+    measure_graph<binary_heap>("binary heap");
+    measure_graph<fibonacci_heap>("fibonacci heap");
 
     return 0;
     // fib_node<int> *x = heap.insert(6);

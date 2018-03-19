@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <cfloat>
+#include <iostream>
 
 class node;
 
@@ -86,7 +87,18 @@ public:
 
 struct node_pointer_compare
 {
-    bool operator()(node *left, node *right) { return left->cost < right->cost; }
+    int num_comparisons;
+
+    node_pointer_compare()
+        : num_comparisons(0)
+    {
+    }
+
+    bool operator()(node *left, node *right)
+    {
+        num_comparisons++;
+        return left->cost < right->cost;
+    }
 };
 
 struct node_pointer_track
@@ -95,13 +107,11 @@ struct node_pointer_track
 };
 
 template<template<typename, typename, typename> typename TPriorityQueue>
-void dijkstra(graph& graph, node& start)
+void dijkstra(graph& graph, node& start, int *numComparisons = nullptr)
 {
     for (node& n : graph.nodes)
     {
-        //std::cout << "Set to inf\n";
         n.cost = INFINITY;
-        //std::cout << "Was set to: " << n.cost <<"\n";
     }
 
     TPriorityQueue<node*, node_pointer_compare, node_pointer_track> queue;
@@ -137,6 +147,9 @@ void dijkstra(graph& graph, node& start)
             }
         }
     }
+
+    if (numComparisons != nullptr)
+        *numComparisons = queue.get_lesser().num_comparisons;
 }
 
 #endif

@@ -18,10 +18,12 @@ void measure(const char *name)
     std::cout << "Trying " << name << "\n";
 
     srand(12345);
-    for (int i = 32; i < 5000000; i *= 2)
+    for (double e = 6; e <= 22; e += 0.25)
     {
+        size_t n = static_cast<size_t>(exp2(e));
+
         std::vector<int> elems;
-        for (int j = 0; j < i; j++)
+        for (int i = 0; i < n; i++)
             elems.push_back(rand());
 
         struct counting_lesser
@@ -42,7 +44,7 @@ void measure(const char *name)
 
         double avg = 0;
         const int times = 1;
-        for (int j = 0; j < times; j++)
+        for (int i = 0; i < times; i++)
         {
             double start = timestamp_ms();
             auto heap = TPriorityQueue<int, counting_lesser, null_tracker<int>>::make_heap(elems);
@@ -52,45 +54,20 @@ void measure(const char *name)
             avg += heap.get_lesser().count;
         }
         std::cout << std::fixed;
-        std::cout << "{" << log2(i) << ", " << (avg / times) << "}, " << std::flush;
+        std::cout << "{" << e << ", " << (avg / times) << "}, " << std::flush;
     }
 
     std::cout << "\n";
 }
-
-/*srand(12345);
-for (int i = 100000; i <= 3000000; i += 100000)
-{
-    std::vector<int> elems;
-    for (int j = 0; j < i; j++)
-        elems.push_back(rand());
-
-    struct counting_lesser
-    {
-        int count;
-
-        bool operator()(const int& left, const int& right)
-        {
-            return left < right;
-        }
-    };
-
-    double start = timestamp_ms();
-    auto heap = TPriorityQueue<int, counting_lesser, null_tracker<int>>::make_heap(elems);
-    while (heap.size() > 0)
-        heap.delete_min();
-
-    double elapsed = timestamp_ms() - start;
-    std::cout << "{" << i << ", " << elapsed << "}, " << std::flush;
-}*/
 
 template<template<typename, typename, typename> typename TPriorityQueue>
 void measure_graph(const char *name)
 {
     std::cout << "\n" << name << "\n";
 
-    for (size_t n = 20000; n<=20000; n+=100)
+    for (double e = 6; e <= 14; e += 0.25)
     {
+        size_t n = static_cast<size_t>(exp2(e));
         graph g;
         for (size_t i = 0; i < n; i++)
         {
@@ -101,30 +78,35 @@ void measure_graph(const char *name)
         {
             for (size_t j = 0; j < i; j++)
             {
-                g.connect(j, i, 2*(i-j-1)+1);
+                g.connect(j, i, (2*(n-2)+2) - (2*(i-j-1)+1));
             }
         }
-        double avg = 0;
-        const int times = 3;
-        for (int j = 0; j < times; j++)
-        {
-            double start = timestamp_ms();
-            dijkstra<TPriorityQueue>(g, *g.find_node("0"));
-            avg += timestamp_ms()-start;
-        }
+
+        // g.print_graph();
+
+        // double avg = 0;
+        // const int times = 3;
+        // for (int j = 0; j < times; j++)
+        // {
+        //     double start = timestamp_ms();
+        //     dijkstra<TPriorityQueue>(g, *g.find_node("0"));
+        //     avg += timestamp_ms()-start;
+        // }
+        int numComparisons;
+        dijkstra<TPriorityQueue>(g, *g.find_node("0"), &numComparisons);
         std::cout << std::fixed;
-        std::cout << "{" << log2(n*n) << ", " << (avg / times) << "}, " << std::flush;
+        std::cout << "{" << e << ", " << numComparisons << "}, " << std::flush;
 
     }
 };
 
 int main()
 {
-    //measure<binary_heap>("binary heap");
-    //measure<fibonacci_heap>("fibonacci heap");
-
     measure_graph<binary_heap>("binary heap");
     measure_graph<fibonacci_heap>("fibonacci heap");
+
+    //measure_graph<binary_heap>("binary heap");
+    //measure_graph<fibonacci_heap>("fibonacci heap");
 
     return 0;
     // fib_node<int> *x = heap.insert(6);

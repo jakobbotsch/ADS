@@ -38,7 +38,6 @@ private:
     size_t m_size;
     Lesser m_less;
     Track m_track;
-    int m_numDKs;
 
     void track(heap_node *node)
     {
@@ -172,11 +171,8 @@ public:
     fibonacci_heap()
         : m_min(nullptr)
         , m_size(0)
-        , m_numDKs(0)
     {
     }
-
-    int get_num_decrease_keys() { return m_numDKs; }
 
     void insert(const T& value)
     {
@@ -215,8 +211,6 @@ public:
 
     void decrease_key(heap_locator loc, const T& key)
     {
-        m_numDKs++;
-
         heap_node *x = static_cast<heap_node*>(loc.pointer);
         x->key = key;
 

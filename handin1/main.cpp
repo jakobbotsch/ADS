@@ -26,32 +26,16 @@ void measure(const char *name)
         for (int i = 0; i < n; i++)
             elems.push_back(rand());
 
-        struct counting_lesser
-        {
-            int count;
-
-            counting_lesser()
-                : count(0)
-            {
-            }
-
-            bool operator()(const int& left, const int& right)
-            {
-                count++;
-                return left < right;
-            }
-        };
-
         double avg = 0;
-        const int times = 1;
+        const int times = 5;
         for (int i = 0; i < times; i++)
         {
             double start = timestamp_ms();
-            auto heap = TPriorityQueue<int, counting_lesser, null_tracker<int>>::make_heap(elems);
+            auto heap = TPriorityQueue<int, std::less<int>, null_tracker<int>>::make_heap(elems);
             while (heap.size() > 0)
                 heap.delete_min();
 
-            avg += heap.get_lesser().count;
+            avg += timestamp_ms() - start;
         }
         std::cout << std::fixed;
         std::cout << "{" << e << ", " << (avg / times) << "}, " << std::flush;
@@ -84,29 +68,24 @@ void measure_graph(const char *name)
 
         // g.print_graph();
 
-        // double avg = 0;
-        // const int times = 3;
-        // for (int j = 0; j < times; j++)
-        // {
-        //     double start = timestamp_ms();
-        //     dijkstra<TPriorityQueue>(g, *g.find_node("0"));
-        //     avg += timestamp_ms()-start;
-        // }
-        int numComparisons;
-        dijkstra<TPriorityQueue>(g, *g.find_node("0"), &numComparisons);
+        double avg = 0;
+        const int times = 5;
+        for (int j = 0; j < times; j++)
+        {
+            double start = timestamp_ms();
+            dijkstra<TPriorityQueue>(g, *g.find_node("0"));
+            avg += timestamp_ms()-start;
+        }
         std::cout << std::fixed;
-        std::cout << "{" << e << ", " << numComparisons << "}, " << std::flush;
+        std::cout << "{" << e << ", " << (avg / times) << "}, " << std::flush;
 
     }
 };
 
 int main()
 {
-    measure_graph<binary_heap>("binary heap");
-    measure_graph<fibonacci_heap>("fibonacci heap");
-
-    //measure_graph<binary_heap>("binary heap");
-    //measure_graph<fibonacci_heap>("fibonacci heap");
+    measure<binary_heap>("binary heap");
+    measure<fibonacci_heap>("fibonacci heap");
 
     return 0;
     // fib_node<int> *x = heap.insert(6);

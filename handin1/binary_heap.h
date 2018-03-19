@@ -25,7 +25,6 @@ private:
     std::vector<T> m_elements;
     Lesser m_less;
     Track m_track;
-    int m_numDKs;
 
     size_t parent(size_t i) { return (i - 1) / 2; }
     size_t left(size_t i) { return 2 * i + 1; }
@@ -68,13 +67,11 @@ public:
     binary_heap(const Lesser& less = Lesser(), const Track& track = Track())
         : m_less(less)
         , m_track(track)
-        , m_numDKs(0)
     {
     }
 
     const Lesser& get_lesser() { return m_less; }
     size_t size() { return m_elements.size(); }
-    int get_num_decrease_keys() { return m_numDKs; }
 
     void dump_list()
     {
@@ -100,8 +97,6 @@ public:
 
     void decrease_key(size_t index, const T& newKey)
     {
-        m_numDKs++;
-
         while (index > 0 && m_less(newKey, m_elements[parent(index)]))
         {
             m_elements[index] = m_elements[parent(index)];
@@ -118,7 +113,6 @@ public:
     {
         m_elements.push_back(element);
         decrease_key(m_elements.size() - 1, element);
-        m_numDKs--;
     }
 
     static binary_heap<T, Lesser, Track> make_heap(const std::vector<T>& elems)

@@ -87,18 +87,7 @@ public:
 
 struct node_pointer_compare
 {
-    int num_comparisons;
-
-    node_pointer_compare()
-        : num_comparisons(0)
-    {
-    }
-
-    bool operator()(node *left, node *right)
-    {
-        num_comparisons++;
-        return left->cost < right->cost;
-    }
+    bool operator()(node *left, node *right) { return left->cost < right->cost; }
 };
 
 struct node_pointer_track
@@ -107,7 +96,7 @@ struct node_pointer_track
 };
 
 template<template<typename, typename, typename> typename TPriorityQueue>
-void dijkstra(graph& graph, node& start, int *numComparisons = nullptr)
+void dijkstra(graph& graph, node& start)
 {
     for (node& n : graph.nodes)
     {
@@ -147,9 +136,6 @@ void dijkstra(graph& graph, node& start, int *numComparisons = nullptr)
             }
         }
     }
-
-    if (numComparisons != nullptr)
-        *numComparisons = queue.get_lesser().num_comparisons;
 }
 
 #endif

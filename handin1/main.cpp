@@ -21,6 +21,7 @@ void measure(const char *name)
     for (double e = 6; e <= 22; e += 0.25)
     {
         size_t n = static_cast<size_t>(exp2(e));
+        n = 5000000;
 
         std::vector<int> elems;
         for (int i = 0; i < n; i++)
@@ -32,13 +33,19 @@ void measure(const char *name)
         {
             double start = timestamp_ms();
             auto heap = TPriorityQueue<int, std::less<int>, null_tracker<int>>::make_heap(elems);
+            int prev = -0x80000000;
             while (heap.size() > 0)
+            {
+                assert(heap.find_min() >= prev);
+                prev = heap.find_min();
                 heap.delete_min();
+            }
 
             avg += timestamp_ms() - start;
         }
         std::cout << std::fixed;
         std::cout << "{" << e << ", " << (avg / times) << "}, " << std::flush;
+break;
     }
 
     std::cout << "\n";
@@ -52,6 +59,7 @@ void measure_graph(const char *name)
     for (double e = 6; e <= 14; e += 0.25)
     {
         size_t n = static_cast<size_t>(exp2(e));
+        n = 20000;
         graph g;
         for (size_t i = 0; i < n; i++)
         {
@@ -60,13 +68,12 @@ void measure_graph(const char *name)
         }
         for (size_t i = 0; i < n; i++)
         {
-            for (size_t j = 0; j < i; j++)
+            for (size_t j = i; j-- > 0; )
+            //for (size_t j = 0; j < i; j++)
             {
-                g.connect(j, i, (2*(n-2)+2) - (2*(i-j-1)+1));
+                g.connect(j, i, (2*(i-j-1)+1));
             }
         }
-
-        // g.print_graph();
 
         double avg = 0;
         const int times = 5;
@@ -77,15 +84,17 @@ void measure_graph(const char *name)
             avg += timestamp_ms()-start;
         }
         std::cout << std::fixed;
-        std::cout << "{" << e << ", " << (avg / times) << "}, " << std::flush;
-
+        std::cout << "{" << n << ", " << (avg / times) << "}, " << std::flush;
+        break;
     }
+
+    std::cout << std::endl;
 };
 
 int main()
 {
-    measure<binary_heap>("binary heap");
-    measure<fibonacci_heap>("fibonacci heap");
+    measure_graph<binary_heap>("binary heap");
+    measure_graph<fibonacci_heap>("fibonacci heap");
 
     return 0;
     // fib_node<int> *x = heap.insert(6);

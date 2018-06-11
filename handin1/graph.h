@@ -41,7 +41,7 @@ public:
 
     void print_graph()
     {
-        std::cout << "digraph graphname {\n";
+        std::cout << "digraph {\nrankdir = LR;\n";
         for(node &n: nodes){
             //std::cout << &n << "\n";
             //std::cout << n.name << "\n";
@@ -114,7 +114,6 @@ void dijkstra(graph& graph, node& start)
 
         for (edge& e : min->edges)
         {
-            //std::cout << "edge to node with cost: " << e.target->cost << "\n";
             double newCost = min->cost + e.weight;
             if (newCost >= e.target->cost)
                 continue;
@@ -123,17 +122,10 @@ void dijkstra(graph& graph, node& start)
             e.target->cost = newCost;
             e.target->parent = min;
 
-
             if (inQueue)
-            {
-                //std::cout << "key " << e.target->name << " decreased\n";
                 queue.decrease_key(e.target->heap_loc, e.target);
-            }
             else
-            {
-                //std::cout << "new " << e.target->name << " added\n";
                 queue.insert(e.target);
-            }
         }
     }
 }
